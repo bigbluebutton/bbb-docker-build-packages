@@ -11,13 +11,13 @@ ENV DEBIAN_FRONTEND noninteractive
 
 ENV GO_VERSION=1.19
 ENV GRADLE_VERSION=7.3.1
-ENV GRAILS_VERSION=5.2.4
+ENV GRAILS_VERSION=5.3.2
 ENV SBT_VERSION=1.6.2
 
 ENV GRADLE_HOME /tools/gradle-${GRADLE_VERSION}
 ENV GRAILS_HOME /tools/grails/grails-${GRAILS_VERSION}
 ENV GOPATH /tools/go
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
+ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
 ENV SBT_HOME /tools/sbt
 
 RUN touch /tmp/a.txt
@@ -50,7 +50,7 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
   equivs \
   fakeroot \
   git \
-  openjdk-11-jdk \
+  openjdk-17-jdk \
   libfreemarker-java \
   libgoogle-gson-java \
   libmaven-assembly-plugin-java \
@@ -150,7 +150,7 @@ RUN apt-get update && apt-get install -y  \
   && rm -rf /var/lib/apt/lists/*
 
 
-RUN update-java-alternatives -s java-1.11.0-openjdk-amd64
+RUN update-java-alternatives -s java-1.17.0-openjdk-amd64
 
 # Added to build the HTML5 client
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
