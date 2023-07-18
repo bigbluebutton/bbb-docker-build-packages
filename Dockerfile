@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 LABEL authors="Fred Dixon, Anton Georgiev"
 
 ARG CACHE_BUST=1
@@ -9,7 +9,7 @@ ARG CACHE_BUST=1
 # Tell debconf to run in non-interactive mode
 ENV DEBIAN_FRONTEND noninteractive
 
-ENV GO_VERSION=1.19
+ENV GO_VERSION=1.20
 ENV GRADLE_VERSION=7.3.1
 ENV GRAILS_VERSION=5.3.2
 ENV SBT_VERSION=1.6.2
@@ -57,9 +57,9 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
   libmaven-compiler-plugin-java \
   libyaml-dev \
   maven-debian-helper \
-  python \
-  python-apt \
-  python-debian \
+  python3 \
+  python3-apt \
+  python3-debian \
   python3-yaml \
   subversion \
   && apt-get clean \
@@ -76,11 +76,11 @@ RUN add-apt-repository -y ppa:bigbluebutton/support  \
   && apt-get update \
   && apt-get install -y \
   libopusenc-dev \
-  sox \
+  # sox \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt install -y \
+RUN apt-get update && apt-get install -y \
   autoconf \
   automake \
   libcurl4-openssl-dev \
@@ -112,7 +112,7 @@ RUN apt-get update && apt-get install -y  \
   libasound2-dev          \
   libavcodec-dev          \
   libavformat-dev         \
-  libavresample-dev     	\
+ # libavresample-dev     	\
   libavutil-dev           \
   libdb-dev               \
   libexpat1-dev           \
@@ -140,7 +140,7 @@ RUN apt-get update && apt-get install -y  \
   openssl                 \
   opus-tools              \
   portaudio19-dev         \
-  python-dev              \
+  python3-dev              \
   python3-pip             \
   unixodbc-dev            \
   yasm                    \
@@ -153,11 +153,23 @@ RUN apt-get update && apt-get install -y  \
 RUN update-java-alternatives -s java-1.17.0-openjdk-amd64
 
 # Added to build the HTML5 client
-RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
-RUN apt-get update && apt-get install -y nodejs
+
+
+ENV NODE_VERSION=18.16.1
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+ENV NVM_DIR=/root/.nvm
+RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
+ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
+RUN node --version
+RUN npm --version
+
+#RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
+#RUN apt-get update && apt-get install -y nodejs
 
 RUN curl https://install.meteor.com/?release=2.12 | sh
-RUN npm install npm@9.5.1 -g
+#RUN npm install npm@9.5.1 -g
 
 # had to drop params
 RUN gem install fpm -f
@@ -195,4 +207,3 @@ RUN wget --no-verbose https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.g
   && rm go${GO_VERSION}.linux-amd64.tar.gz
 
 RUN cd ..
-
