@@ -45,8 +45,7 @@ jobs:
         with:
           push: true
           tags: |
-            "${{ steps.ci_branch_name.outputs.branch }}:${{ steps.date.outputs.date }}"
-          repository: bigbluebutton/bbb-build
+            "bigbluebutton/bbb-build:${{ steps.ci_branch_name.outputs.branch }}-${{ steps.date.outputs.date }}"
           context: .
           cache-from: type=registry,ref=user/app:latest
           cache-to: type=inline
