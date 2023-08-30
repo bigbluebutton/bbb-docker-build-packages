@@ -42,7 +42,7 @@ jobs:
         id: date
         if: contains(env.DOCKER_BUILD_ENABLED, 'true')
         shell: bash
-        run: echo "::set-output name=date::$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_OUTPUT
+        run: echo "time=$(date +'%Y-%m-%d-%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Build and Push branch
         if: contains(env.DOCKER_BUILD_ENABLED, 'true')
@@ -50,7 +50,7 @@ jobs:
         with:
           push: true
           tags: |
-            "bigbluebutton/bbb-build:${{ steps.ci_branch_name.outputs.branch }}-${{ steps.date.outputs.date }}"
+            "bigbluebutton/bbb-build:${{ steps.ci_branch_name.outputs.branch }}--${{ steps.date.outputs.time }}"
           context: .
           cache-from: type=registry,ref=user/app:latest
           cache-to: type=inline
