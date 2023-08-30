@@ -8,6 +8,16 @@ ARG CACHE_BUST=1
 
 # Tell debconf to run in non-interactive mode
 ENV DEBIAN_FRONTEND noninteractive
+
+ENV GRADLE_VERSION=7.3.1
+ENV GRAILS_VERSION=5.2.4
+ENV SBT_VERSION=1.6.2
+
+ENV GRADLE_HOME /tools/gradle-${GRADLE_VERSION}
+ENV GRAILS_HOME /tools/grails/grails-${GRAILS_VERSION}
+ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
+ENV SBT_HOME /tools/sbt
+
 RUN touch /tmp/a.txt
 
 # Make sure the repository information is up to date
@@ -158,11 +168,6 @@ RUN apt-get update && apt-get install -y  \
   && rm -rf /var/lib/apt/lists/*
 
 
-# gradle/grails/sbt
-ENV GRAILS_VERSION=5.2.4
-ENV GRADLE_VERSION=7.3.1
-ENV SBT_VERSION=1.6.2
-
 RUN mkdir tools
 RUN cd tools
 
@@ -183,9 +188,3 @@ RUN wget --no-verbose https://github.com/sbt/sbt/releases/download/v${SBT_VERSIO
   && rm -f sbt-${SBT_VERSION}.zip
 
 RUN cd ..
-
-ENV GRAILS_HOME /tools/grails/grails-${GRAILS_VERSION}
-ENV GRADLE_HOME /tools/gradle-${GRADLE_VERSION}
-ENV SBT_HOME /tools/sbt
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
-
