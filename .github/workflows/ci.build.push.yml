@@ -1,9 +1,14 @@
 name: Build And Push to Dockerhub
 on:
   push:
-    branches-ignore:
+    branches:
       - 'v**'
-
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '**/*.md'
+permissions:
+  contents: read
 jobs:
   main:
     name: Build Docker Image
