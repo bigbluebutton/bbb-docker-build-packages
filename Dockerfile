@@ -156,7 +156,7 @@ RUN update-java-alternatives -s java-1.17.0-openjdk-amd64
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get update && apt-get install -y nodejs
 
-RUN curl https://install.meteor.com/?release=2.12 | sh
+RUN curl https://install.meteor.com/?release=2.13 | sh
 RUN npm install npm@9.5.1 -g
 
 # had to drop params
