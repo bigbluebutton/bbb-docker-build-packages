@@ -154,7 +154,6 @@ RUN update-java-alternatives -s java-1.17.0-openjdk-amd64
 
 # Added to build the HTML5 client
 
-
 ENV NODE_VERSION=18.16.1
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 ENV NVM_DIR=/root/.nvm
@@ -189,7 +188,6 @@ RUN wget --no-verbose https://github.com/grails/grails-core/releases/download/v$
   && unzip -q grails-${GRAILS_VERSION}.zip \
   && ln -s ${PWD}/grails-${GRAILS_VERSION}/bin/grails /usr/bin/grails \
   && rm -f grails-${GRAILS_VERSION}.zip
-
 
 RUN wget --no-verbose https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip \
   && unzip -q gradle-${GRADLE_VERSION}-all.zip \
