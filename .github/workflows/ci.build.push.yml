@@ -46,11 +46,11 @@ jobs:
 
       - name: Build and Push branch
         if: contains(env.DOCKER_BUILD_ENABLED, 'true')
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           push: true
           tags: |
             "bigbluebutton/bbb-build:${{ steps.ci_branch_name.outputs.branch }}--${{ steps.date.outputs.time }}"
           context: .
-          cache-from: type=registry,ref=user/app:latest
-          cache-to: type=inline
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
