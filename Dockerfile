@@ -17,7 +17,7 @@ ENV SBT_VERSION=1.6.2
 ENV GRADLE_HOME /tools/gradle-${GRADLE_VERSION}
 ENV GRAILS_HOME /tools/grails/grails-${GRAILS_VERSION}
 ENV GOPATH /tools/go
-ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
+ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk-arm64
 ENV SBT_HOME /tools/sbt
 
 RUN touch /tmp/a.txt
@@ -150,7 +150,7 @@ RUN apt-get update && apt-get install -y  \
   && rm -rf /var/lib/apt/lists/*
 
 
-RUN update-java-alternatives -s java-1.17.0-openjdk-amd64
+RUN update-java-alternatives -s java-1.17.0-openjdk-arm64
 
 # Added to build the HTML5 client
 
@@ -167,7 +167,9 @@ RUN npm --version
 #RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 #RUN apt-get update && apt-get install -y nodejs
 
-RUN curl https://install.meteor.com/?release=2.13 | sh
+#RUN curl https://install.meteor.com/?release=2.13 | sh
+RUN npx meteor@beta # TODO unverified
+#RUN npm install -g meteor
 #RUN npm install npm@9.5.1 -g
 
 # had to drop params
@@ -199,9 +201,9 @@ RUN wget --no-verbose https://github.com/sbt/sbt/releases/download/v${SBT_VERSIO
   && ln -s ${PWD}/sbt/bin/sbt /usr/bin/sbt \
   && rm -f sbt-${SBT_VERSION}.zip
 
-RUN wget --no-verbose https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz \
-  && tar -xzf go${GO_VERSION}.linux-amd64.tar.gz \
+RUN wget --no-verbose https://dl.google.com/go/go${GO_VERSION}.linux-arm64.tar.gz \
+  && tar -xzf go${GO_VERSION}.linux-arm64.tar.gz \
   && ln -s ${PWD}/go/bin/go /usr/bin/go \
-  && rm go${GO_VERSION}.linux-amd64.tar.gz
+  && rm go${GO_VERSION}.linux-arm64.tar.gz
 
 RUN cd ..
