@@ -12,6 +12,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV GO_VERSION=1.22.5
 ENV GRADLE_VERSION=7.3.1
 ENV GRAILS_VERSION=5.3.2
+ENV NODE_VERSION=22.5.1
 ENV SBT_VERSION=1.6.2
 
 ENV GRADLE_HOME /tools/gradle-${GRADLE_VERSION}
@@ -152,9 +153,6 @@ RUN apt-get update && apt-get install -y  \
 
 RUN update-java-alternatives -s java-1.17.0-openjdk-amd64
 
-# Added to build the HTML5 client
-
-ENV NODE_VERSION=18.16.1
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 ENV NVM_DIR=/root/.nvm
 RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
@@ -163,12 +161,6 @@ RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
 ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 RUN node --version
 RUN npm --version
-
-#RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
-#RUN apt-get update && apt-get install -y nodejs
-
-RUN curl https://install.meteor.com/?release=2.13 | sh
-#RUN npm install npm@9.5.1 -g
 
 # had to drop params
 RUN gem install fpm -f
