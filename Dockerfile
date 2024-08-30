@@ -77,7 +77,7 @@ RUN add-apt-repository -y ppa:bigbluebutton/support  \
   && apt-get update \
   && apt-get install -y \
   libopusenc-dev \
-  # sox \
+  sox \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
