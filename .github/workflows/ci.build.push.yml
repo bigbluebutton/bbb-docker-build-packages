@@ -50,6 +50,7 @@ jobs:
         with:
           push: true
           tags: |
+            "bigbluebutton/bbb-build:${{ steps.ci_branch_name.outputs.branch }}"
             "bigbluebutton/bbb-build:${{ steps.ci_branch_name.outputs.branch }}--${{ steps.date.outputs.time }}"
           context: .
           cache-from: type=gha
