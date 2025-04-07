@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 LABEL authors="Fred Dixon, Anton Georgiev"
 
 ARG CACHE_BUST=1
@@ -73,13 +73,13 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/*
 
 # For FreeSWITCH
-RUN add-apt-repository -y ppa:bigbluebutton/support  \
-  && apt-get update \
-  && apt-get install -y \
-  libopusenc-dev \
-  sox \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+#RUN add-apt-repository -y ppa:bigbluebutton/support  \
+#  && apt-get update \
+#  && apt-get install -y \
+#  libopusenc-dev \
+#  sox \
+#  && apt-get clean \
+#  && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y \
   autoconf \
@@ -88,8 +88,6 @@ RUN apt-get update && apt-get install -y \
   libedit-dev \
   libjpeg-dev \
   libldns-dev \
-  libncurses5 \
-  libncurses5-dev \
   libpcre3-dev \
   libspeexdsp-dev \
   libsqlite3-dev \
@@ -113,7 +111,6 @@ RUN apt-get update && apt-get install -y  \
   libasound2-dev          \
   libavcodec-dev          \
   libavformat-dev         \
- # libavresample-dev     	\
   libavutil-dev           \
   libdb-dev               \
   libexpat1-dev           \
