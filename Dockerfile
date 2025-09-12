@@ -7,19 +7,19 @@ ARG CACHE_BUST=1
 # docker build -t build-focal .; docker rmi -f $(docker images --filter "dangling=true" -q)
 
 # Tell debconf to run in non-interactive mode
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 ENV GO_VERSION=1.25.1
 ENV GRADLE_VERSION=8.5
-ENV GRAILS_VERSION=7.0.0-RC1
+ENV GRAILS_VERSION=7.0.0-RC2
 ENV NODE_VERSION=22.19.0
 ENV SBT_VERSION=1.6.2
 
-ENV GRADLE_HOME /tools/gradle-${GRADLE_VERSION}
-ENV GRAILS_HOME /tools/grails/grails-${GRAILS_VERSION}
-ENV GOPATH /tools/go
-ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
-ENV SBT_HOME /tools/sbt
+ENV GRADLE_HOME=/tools/gradle-${GRADLE_VERSION}
+ENV GRAILS_HOME=/tools/grails/grails-${GRAILS_VERSION}
+ENV GOPATH=/tools/go
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV SBT_HOME=/tools/sbt
 
 RUN touch /tmp/a.txt
 
@@ -176,10 +176,11 @@ RUN apt-get update && apt-get install -y  \
 RUN mkdir tools
 RUN cd tools
 
-RUN wget --no-verbose https://github.com/grails/grails-core/releases/download/v${GRAILS_VERSION}/grails-${GRAILS_VERSION}.zip \
-  && unzip -q grails-${GRAILS_VERSION}.zip \
-  && ln -s ${PWD}/grails-${GRAILS_VERSION}/bin/grails /usr/bin/grails \
-  && rm -f grails-${GRAILS_VERSION}.zip
+ENV APACHE_GRAILS=apache-grails-${GRAILS_VERSION}-incubating-bin
+RUN wget --no-verbose https://github.com/grails/grails-core/releases/download/v${GRAILS_VERSION}/${APACHE_GRAILS}.zip \
+  && unzip -q ${APACHE_GRAILS}.zip \
+  && ln -s ${PWD}/${APACHE_GRAILS}/bin/grails /usr/bin/grails \
+  && rm -f apache-grails-${GRAILS_VERSION}-incubating-zip.zip
 
 RUN wget --no-verbose https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip \
   && unzip -q gradle-${GRADLE_VERSION}-all.zip \
