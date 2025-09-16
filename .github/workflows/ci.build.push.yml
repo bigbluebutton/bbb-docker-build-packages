@@ -36,7 +36,7 @@ jobs:
         id: ci_branch_name
         if: contains(env.DOCKER_BUILD_ENABLED, 'true')
         shell: bash
-        run: echo "branch=$(echo ${{github.ref_name}})" >> $GITHUB_OUTPUT
+        run: echo "branch=$(echo ${{github.head_ref || github.ref_name}})" >> $GITHUB_OUTPUT
 
       - name: Get current date
         id: date
