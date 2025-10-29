@@ -176,8 +176,8 @@ RUN apt-get update && apt-get install -y  \
 RUN mkdir tools
 RUN cd tools
 
-ENV APACHE_GRAILS=apache-grails-${GRAILS_VERSION}-incubating-bin
-RUN wget --no-verbose https://github.com/grails/grails-core/releases/download/v${GRAILS_VERSION}/${APACHE_GRAILS}.zip \
+ENV APACHE_GRAILS=apache-grails-${GRAILS_VERSION}-bin
+RUN wget --no-verbose https://github.com/apache/grails-core/releases/download/v${GRAILS_VERSION}/${APACHE_GRAILS}.zip \
   && unzip -q ${APACHE_GRAILS}.zip \
   && ln -s ${PWD}/${APACHE_GRAILS}/bin/grails /usr/bin/grails \
   && rm -f ${APACHE_GRAILS}.zip
