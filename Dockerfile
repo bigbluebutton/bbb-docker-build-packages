@@ -72,14 +72,11 @@ RUN apt-get update && apt-get install -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# For FreeSWITCH
-# RUN add-apt-repository -y ppa:bigbluebutton/support  \
-#   && apt-get update \
-#   && apt-get install -y \
-#   libopusenc-dev \
-#   sox \
-#   && apt-get clean \
-#   && rm -rf /var/lib/apt/lists/*
+# For FreeSWITCH (libopusenc-dev is in noble's main repo, no PPA needed)
+RUN apt-get update && apt-get install -y \
+  libopusenc-dev \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y \
   autoconf \
