@@ -75,6 +75,7 @@ RUN apt-get update && apt-get install -y \
 # For FreeSWITCH (libopusenc-dev is in noble's main repo, no PPA needed)
 RUN apt-get update && apt-get install -y \
   libopusenc-dev \
+  sox \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
