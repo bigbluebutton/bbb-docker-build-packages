@@ -87,7 +87,7 @@ RUN apt-get update && apt-get install -y \
   libldns-dev \
   libncurses6 \
   libncurses-dev \
-  libpcre3-dev \
+  libpcre2-dev \
   libspeexdsp-dev \
   libsqlite3-dev \
   libtool \
