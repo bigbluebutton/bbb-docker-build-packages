@@ -9,10 +9,10 @@ ARG CACHE_BUST=1
 # Tell debconf to run in non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV GO_VERSION=1.26.5
+ENV GO_VERSION=1.27.0
 ENV GRADLE_VERSION=9.6.0
 ENV GRAILS_VERSION=8.0.0-RC2
-ENV NODE_VERSION=22.23.1
+ENV NODE_VERSION=22.23.2
 ENV SBT_VERSION=1.10.7
 
 ENV GRADLE_HOME=/tools/gradle-${GRADLE_VERSION}
@@ -87,7 +87,7 @@ RUN apt-get update && apt-get install -y \
   libldns-dev \
   libncurses6 \
   libncurses-dev \
-  libpcre3-dev \
+  libpcre2-dev \
   libspeexdsp-dev \
   libsqlite3-dev \
   libtool \
