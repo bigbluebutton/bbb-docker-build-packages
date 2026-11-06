@@ -1,195 +1,118 @@
+# Slim BigBlueButton package-build image, ubuntu:24.04 based.
+# Same toolchain the build/packages-template/*/build.sh scripts use, minus
+# everything nothing calls (Grails, standalone Gradle, nvm, editors, sshd,
+# Debian packaging helpers, FreeSWITCH dev libs for modules not in modules.conf).
 FROM ubuntu:24.04
 LABEL authors="Fred Dixon, Anton Georgiev"
 
-ARG CACHE_BUST=1
-
-# In order to update, use:
-# docker build -t build-focal .; docker rmi -f $(docker images --filter "dangling=true" -q)
-
-# Tell debconf to run in non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV GO_VERSION=1.27.0
-ENV GRADLE_VERSION=8.14.3
-ENV GRAILS_VERSION=7.0.12
-ENV NODE_VERSION=24.20.0
+ENV GO_VERSION=1.27.3
+ENV NODE_VERSION=24.22.1
 ENV SBT_VERSION=1.10.7
 
-ENV GRADLE_HOME=/tools/gradle-${GRADLE_VERSION}
-ENV GRAILS_HOME=/tools/grails/grails-${GRAILS_VERSION}
-ENV GOPATH=/tools/go
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-ENV SBT_HOME=/tools/sbt
+# GOROOT=/go and GOPATH=/tools/go as in the previous image: Go records both paths in every binary it
+# builds (the package builds do not pass -trimpath), so keeping them keeps the packages identical.
+ENV GOPATH=/tools/go
+ENV PATH=/go/bin:/tools/sbt/bin:${PATH}
 
-RUN touch /tmp/a.txt
+# No manuals, docs, info pages or locales in a build image; copyright files stay. The empty man directories stay
+# because update-alternatives (the JDK postinst, anything apt-get installs during a package build) fails without them.
+RUN printf 'path-exclude=/usr/share/doc/*\npath-include=/usr/share/doc/*/copyright\npath-exclude=/usr/share/man/*\npath-exclude=/usr/share/info/*\npath-exclude=/usr/share/locale/*\npath-exclude=/usr/share/lintian/*\n' \
+      > /etc/dpkg/dpkg.cfg.d/01-nodoc \
+  && rm -rf /usr/share/doc/* /usr/share/man/* /usr/share/info/* /usr/share/locale/* \
+  && mkdir -p /usr/share/man/man1 /usr/share/man/man3 /usr/share/man/man5 /usr/share/man/man7 /usr/share/man/man8
 
-# Make sure the repository information is up to date
-RUN apt-get update && apt-get install -y \
-  apt-utils       \
-  ca-certificates \
-  openssh-server  \
-  vim             \
-  wget            \
+# All apt packages in one layer: build toolchain, JDK, Ruby (fpm), and the
+# -dev libraries for the FreeSWITCH modules listed in
+# build/packages-template/bbb-freeswitch-core/modules.conf plus sofia-sip,
+# spandsp, libks and libwebsockets. python3-pip: the bbb-webrtc-sfu build
+# compiles the mediasoup worker with meson/ninja fetched by pip. equivs: the
+# bigbluebutton meta-package build runs equivs-build. systemd-dev: systemd.pc,
+# which bbb-record-core's build.sh queries for the unit directory. libsctp-dev:
+# coturn's configure compiles SCTP support when the header is present. lsb-release: coturn's
+# configure consults lsb_release and picks its Ubuntu code path from it.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    autoconf \
+    automake \
+    build-essential \
+    bzip2 \
+    ca-certificates \
+    cmake \
+    curl \
+    equivs \
+    fakeroot \
+    gawk \
+    git \
+    jq \
+    libtool \
+    libtool-bin \
+    lsb-release \
+    make \
+    moreutils \
+    openjdk-21-jdk-headless \
+    openssl \
+    patch \
+    pkg-config \
+    python3 \
+    python3-pip \
+    python3-yaml \
+    ruby \
+    ruby-bundler \
+    ruby-dev \
+    unzip \
+    wget \
+    xz-utils \
+    yasm \
+    libsystemd-dev \
+    libcurl4-openssl-dev \
+    libedit-dev \
+    libexpat1-dev \
+    libjpeg-dev \
+    libldns-dev \
+    liblua5.4-dev \
+    libncurses-dev \
+    libopus-dev \
+    libopusenc-dev \
+    libopusfile-dev \
+    libpcre2-dev \
+    libsndfile1-dev \
+    libspeex-dev \
+    libspeexdsp-dev \
+    libsctp-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    libtiff-dev \
+    systemd-dev \
+    uuid-dev \
+    zlib1g-dev \
+  && gem install fpm --no-document \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*.deb /root/.cache /root/.local/share/gem \
+       /usr/share/doc/* /usr/share/man/* /usr/share/info/* /usr/share/locale/* \
+  && mkdir -p /usr/share/man/man1 /usr/share/man/man3 /usr/share/man/man5 /usr/share/man/man7 /usr/share/man/man8
 
-# base
-RUN apt-get update && apt-get install -y \
-  apt-transport-https \
-  build-essential \
-  checkinstall \
-  curl \
-  git-core \
-  lsb-release \
-  ruby-dev
+# Node.js from the official tarball into /usr/local (node, npm, npx on PATH).
+# The headers are dropped: node-gyp fetches them on demand, and no package in the build compiles an addon against them.
+RUN curl -fsSL -o /tmp/node.tar.xz https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz \
+  && tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 --no-same-owner \
+       --exclude=CHANGELOG.md --exclude=README.md --exclude=LICENSE \
+  && rm -rf /tmp/node.tar.xz /usr/local/include/node /usr/local/share/doc /usr/local/share/man \
+  && node --version && npm --version
 
-# Build packages
-RUN apt-get update && apt-get -y install --no-install-recommends \
-  cdbs \
-  debhelper \
-  devscripts \
-  equivs \
-  fakeroot \
-  git \
-  openjdk-21-jdk \
-  libfreemarker-java \
-  libgoogle-gson-java \
-  libmaven-assembly-plugin-java \
-  libmaven-compiler-plugin-java \
-  libyaml-dev \
-  maven-debian-helper \
-  python3 \
-  python3-apt \
-  python3-debian \
-  python3-yaml \
-  subversion \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+# Go toolchain in /go (see GOROOT above) without its tests, docs and API files
+RUN curl -fsSL -o /tmp/go.tar.gz https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz \
+  && tar -xzf /tmp/go.tar.gz -C / \
+  && rm -rf /tmp/go.tar.gz /go/test /go/doc /go/misc /go/api \
+  && ln -s /go/bin/go /usr/bin/go \
+  && go version
 
-# ubuntu speciphic:
-RUN apt-get update && apt-get install -y \
-  software-properties-common \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
-
-# For FreeSWITCH (libopusenc-dev is in noble's main repo, no PPA needed)
-RUN apt-get update && apt-get install -y \
-  libopusenc-dev \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update && apt-get install -y \
-  autoconf \
-  automake \
-  libcurl4-openssl-dev \
-  libedit-dev \
-  libjpeg-dev \
-  libldns-dev \
-  libncurses6 \
-  libncurses-dev \
-  libpcre2-dev \
-  libspeexdsp-dev \
-  libsqlite3-dev \
-  libtool \
-  libtool-bin \
-  make \
-  pkg-config  \
-  sqlite3 \
-  unixodbc \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update && apt-get install -y  \
-  bison	              		\
-  cmake                   \
-  gawk                    \
-  groff                   \
-  groff-base	          	\
-  liba52-0.7.4-dev        \
-  libapr1-dev             \
-  libasound2-dev          \
-  libavcodec-dev          \
-  libavformat-dev         \
- # libavresample-dev     	\
-  libavutil-dev           \
-  libdb-dev               \
-  libexpat1-dev           \
-  libgdbm-dev             \
-  libgnutls28-dev         \
-  libladspa-ocaml-dev     \
-  liblua5.4-dev           \
-  libmemcached-dev        \
-  libmp3lame-dev          \
-  libogg-dev              \
-  libopusfile-dev         \
-  libperl-dev		          \
-  libpq-dev               \
-  libsndfile-dev          \
-  libsnmp-dev             \
-  libspeex-dev            \
-  libssl-dev              \
-  libswscale-dev          \
-  libtiff-dev             \
-  libvlc-dev              \
-  libvorbis-dev           \
-  libx11-dev              \
-  odbc-postgresql         \
-  openssl                 \
-  opus-tools              \
-  portaudio19-dev         \
-  python3-dev              \
-  python3-pip             \
-  unixodbc-dev            \
-  yasm                    \
-  jq                      \
-  moreutils               \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
-
-
-RUN update-java-alternatives -s java-1.21.0-openjdk-amd64
-
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | bash
-ENV NVM_DIR=/root/.nvm
-RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
-RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
-ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
-RUN node --version
-RUN npm --version
-
-# had to drop params
-RUN gem install fpm -f
-
-# needed for bbb-record-core
-RUN apt-get update && apt-get install -y  \
-  libsystemd-dev \
-  ruby-bundler \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
-
-
-RUN mkdir tools
-RUN cd tools
-
-ENV APACHE_GRAILS=apache-grails-${GRAILS_VERSION}-bin
-RUN wget --no-verbose https://github.com/apache/grails-core/releases/download/v${GRAILS_VERSION}/${APACHE_GRAILS}.zip \
-  && unzip -q ${APACHE_GRAILS}.zip \
-  && ln -s ${PWD}/${APACHE_GRAILS}/bin/grails /usr/bin/grails \
-  && rm -f ${APACHE_GRAILS}.zip
-
-RUN wget --no-verbose https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip \
-  && unzip -q gradle-${GRADLE_VERSION}-all.zip \
-  && ln -s ${PWD}/gradle-${GRADLE_VERSION}/bin/gradle /usr/bin/gradle \
-  && rm -f gradle-${GRADLE_VERSION}-all.zip
-
-RUN wget --no-verbose https://github.com/sbt/sbt/releases/download/v${SBT_VERSION}/sbt-${SBT_VERSION}.zip \
-  && unzip -q sbt-${SBT_VERSION}.zip \
-  && ln -s ${PWD}/sbt/bin/sbt /usr/bin/sbt \
-  && rm -f sbt-${SBT_VERSION}.zip
-
-RUN wget --no-verbose https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz \
-  && tar -xzf go${GO_VERSION}.linux-amd64.tar.gz \
-  && ln -s ${PWD}/go/bin/go /usr/bin/go \
-  && rm go${GO_VERSION}.linux-amd64.tar.gz
-
-RUN cd ..
+# sbt launcher only. The zip's preloaded repository (150 MB) is dropped: the launcher fetches the sbt
+# version each project pins from Maven Central into the ivy cache, which the builds mount and keep.
+RUN mkdir -p /tools \
+  && curl -fsSL -o /tmp/sbt.zip https://github.com/sbt/sbt/releases/download/v${SBT_VERSION}/sbt-${SBT_VERSION}.zip \
+  && unzip -q /tmp/sbt.zip -d /tools \
+  && rm -rf /tmp/sbt.zip /tools/sbt/lib/local-preloaded \
+  && test -x /tools/sbt/bin/sbt
