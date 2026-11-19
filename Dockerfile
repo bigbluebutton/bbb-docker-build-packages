@@ -73,6 +73,8 @@ RUN apt-get update \
     libjpeg-dev \
     libldns-dev \
     liblua5.4-dev \
+    libminiupnpc-dev \
+    libnatpmp-dev \
     libncurses-dev \
     libopus-dev \
     libopusenc-dev \
