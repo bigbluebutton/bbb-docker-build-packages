@@ -88,6 +88,8 @@ RUN apt-get update && apt-get install -y \
   libedit-dev \
   libjpeg-dev \
   libldns-dev \
+  libminiupnpc-dev \
+  libnatpmp-dev \
   libncurses5 \
   libncurses5-dev \
   libpcre2-dev \
