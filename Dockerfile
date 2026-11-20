@@ -7,8 +7,8 @@ LABEL authors="Fred Dixon, Anton Georgiev"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV GO_VERSION=1.27.3
-ENV NODE_VERSION=24.22.1
+ENV GO_VERSION=1.27.4
+ENV NODE_VERSION=24.22.3
 ENV SBT_VERSION=1.10.7
 
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
